@@ -5,7 +5,7 @@
 1. Перенесите данные из Яндекс Директ в Object Storage с использованием Cloud Functions.
 2. Перенесите данные из Object Storage в Managed Service for ClickHouse® с использованием Data Transfer.
 
-Сценарий может быть выполнен в [Консоли Управления Yandex Cloud](https://console.cloud.yandex.ru) или с помощью Terraform. Для выполнения сценария вам потребуются файл [example-py.zip](example-py.zip) с кодом функции на Python.
+Сценарий может быть выполнен в [Консоли Управления Yandex Cloud](https://console.cloud.yandex.ru) или с помощью Terraform. Для выполнения сценария вам потребуется архив [example-py.zip](example-py.zip) с кодом функции на Python.
 Для выполнения сценария с помощью Terraform скачайте конфигурационный файл, [ya-direct-to-mch.tf](ya-direct-to-mch.tf). 
 
 При выполнении сценария вы подготовите тестовые данные, создадите и активируете трансфер, проверите работоспособность трансфера, а затем, удалите данные и ресурсы, которые вам больше не потребуются. Подробное описание см. в [практическом руководстве](https://cloud.yandex.ru/ru/docs/data-transfer/tutorials/direct-to-mch).
