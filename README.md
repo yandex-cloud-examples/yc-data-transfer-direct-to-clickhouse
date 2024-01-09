@@ -1,6 +1,6 @@
 # Перенос данных из Яндекс Директ в витрину Yandex Managed Service for ClickHouse®
 
-С помощью этого сценария вы можене мигрировать данные из Яндекс Директ в Managed Service for ClickHouse® с использованием сервисов Cloud Functions, Object Storage и Data Transfer. Для этого:
+С помощью этого сценария вы можете мигрировать данные из Яндекс Директ в Managed Service for ClickHouse® с использованием сервисов Cloud Functions, Object Storage и Data Transfer. Для этого:
 
 1. Перенесите данные из Яндекс Директ в Object Storage с использованием Cloud Functions.
 2. Перенесите данные из Object Storage в Managed Service for ClickHouse® с использованием Data Transfer.
