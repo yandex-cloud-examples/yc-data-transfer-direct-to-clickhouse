@@ -6,18 +6,18 @@
 # Specify the following settings:
 locals {
 
-  folder_id   = "" # Set your cloud folder ID, same as for provider.
-  app_token   = "" # Set an application token.
-  bucket_name = "" # Set a unique bucket name.
-  ch_password = "" # Set a password for the ClickHouse® admin user.
+  folder_id   = "" # Set your cloud folder ID, same as for provider
+  app_token   = "" # Set an application token
+  bucket_name = "" # Set a unique bucket name
+  ch_password = "" # Set a password for the ClickHouse® admin user
 
   path_to_zip_cf  = "" # Path to ZIP archive with function code
-  create_function = 0  # Set to 1 to create the Cloud Function.
+  create_function = 0  # Set to 1 to create the Cloud Function
 
   # Specify these settings ONLY AFTER the cluster is created. Then run "terraform apply" command again.
   # You should set up a source endpoint for the Object Storage bucket using the GUI to obtain its ID.
-  source_endpoint_id = "" # Set the source endpoint ID.
-  transfer_enabled   = 0  # Set to 1 to enable Transfer.
+  source_endpoint_id = "" # Set the source endpoint ID
+  transfer_enabled   = 0  # Set to 1 to enable Transfer
 
   # The following settings are predefined. Change them only if necessary.
   network_name          = "mch-network"          # Name of the network
@@ -29,7 +29,7 @@ locals {
   mch_cluster_name      = "mch-cluster"          # Name of the ClickHouse cluster
   database_name         = "db1"                  # Name of the ClickHouse database
   ch_username           = "user1"                # Name of the ClickHouse admin user
-  target_endpoint_name  = "mch-target"         # Name of the target endpoint for the ClickHouse® cluster
+  target_endpoint_name  = "mch-target"           # Name of the target endpoint for the ClickHouse® cluster
   transfer_name         = "s3-mch-transfer"      # Name of the transfer from the Object Storage bucket to the Managed Service for ClickHouse® cluster
 }
 
@@ -146,7 +146,7 @@ resource "yandex_function" "example-function" {
   name               = local.function_name
   user_hash          = "example-function-hash"
   folder_id          = local.folder_id
-  runtime            = "python39"
+  runtime            = "python312"
   entrypoint         = "example.foo"
   memory             = "128"
   execution_timeout  = "100"
@@ -186,6 +186,10 @@ resource "yandex_mdb_clickhouse_cluster" "mch-cluster" {
   network_id         = yandex_vpc_network.network.id
   security_group_ids = [yandex_vpc_security_group.security-group.id]
 
+  lifecycle {
+    ignore_changes = [database, user,]
+  }
+
   clickhouse {
     resources {
       resource_preset_id = "s2.micro" # 2 vCPU, 8 GB RAM
@@ -200,17 +204,20 @@ resource "yandex_mdb_clickhouse_cluster" "mch-cluster" {
     subnet_id        = yandex_vpc_subnet.subnet-a.id
     assign_public_ip = true # Required for connection from the internet
   }
+}
 
-  database {
-    name = local.database_name
-  }
+resource "yandex_mdb_clickhouse_database" "mch-database" {
+  cluster_id = yandex_mdb_clickhouse_cluster.mch-cluster.id
+  name       = local.database_name
+}
 
-  user {
-    name     = local.ch_username
-    password = local.ch_password
-    permission {
-      database_name = local.database_name
-    }
+resource "yandex_mdb_clickhouse_user" "mch-user" {
+  cluster_id = yandex_mdb_clickhouse_cluster.mch-cluster.id
+  name       = local.ch_username
+  password   = local.ch_password
+
+  permission {
+      database_name = yandex_mdb_clickhouse_database.mch-database.name
   }
 }
 
