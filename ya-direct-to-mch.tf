@@ -179,45 +179,52 @@ resource "yandex_function" "example-function" {
   }
 }
 
-resource "yandex_mdb_clickhouse_cluster" "mch-cluster" {
+resource "yandex_mdb_clickhouse_cluster_v2" "mch-cluster" {
   description        = "Managed Service for ClickHouse® cluster"
   name               = local.mch_cluster_name
   environment        = "PRODUCTION"
   network_id         = yandex_vpc_network.network.id
   security_group_ids = [yandex_vpc_security_group.security-group.id]
 
-  lifecycle {
-    ignore_changes = [database, user,]
-  }
-
-  clickhouse {
-    resources {
+  clickhouse = {
+    resources = {
       resource_preset_id = "s2.micro" # 2 vCPU, 8 GB RAM
       disk_type_id       = "network-ssd"
       disk_size          = 10 # GB
     }
   }
 
-  host {
-    type             = "CLICKHOUSE"
-    zone             = "ru-central1-a"
-    subnet_id        = yandex_vpc_subnet.subnet-a.id
-    assign_public_ip = true # Required for connection from the internet
+  hosts = {
+    "ch-host1" = {
+      type             = "CLICKHOUSE"
+      zone             = "ru-central1-a"
+      subnet_id        = yandex_vpc_subnet.subnet-a.id
+      assign_public_ip = true # Required for connection from the internet
+      shard_name       = "shard1"
+    }
+  }
+
+  shards = {
+    "shard1" = {}
+  }
+
+  maintenance_window {
+    type = "ANYTIME"
   }
 }
 
 resource "yandex_mdb_clickhouse_database" "mch-database" {
-  cluster_id = yandex_mdb_clickhouse_cluster.mch-cluster.id
+  cluster_id = yandex_mdb_clickhouse_cluster_v2.mch-cluster.id
   name       = local.database_name
 }
 
 resource "yandex_mdb_clickhouse_user" "mch-user" {
-  cluster_id = yandex_mdb_clickhouse_cluster.mch-cluster.id
+  cluster_id = yandex_mdb_clickhouse_cluster_v2.mch-cluster.id
   name       = local.ch_username
   password   = local.ch_password
 
   permission {
-      database_name = yandex_mdb_clickhouse_database.mch-database.name
+    database_name = yandex_mdb_clickhouse_database.mch-database.name
   }
 }
 
@@ -230,7 +237,7 @@ resource "yandex_datatransfer_endpoint" "mch-target" {
     clickhouse_target {
       connection {
         connection_options {
-          mdb_cluster_id = yandex_mdb_clickhouse_cluster.mch-cluster.id
+          mdb_cluster_id = yandex_mdb_clickhouse_cluster_v2.mch-cluster.id
           database       = local.database_name
           user           = local.ch_username
           password {
